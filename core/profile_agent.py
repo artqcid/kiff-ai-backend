@@ -35,7 +35,7 @@ class ProfileAgent:
         self.last_model_used: Optional[str] = None
 
     def _load_profiles(self) -> Dict:
-        """Lädt Profile aus profiles_kiff.json"""
+        """Lädt Profile aus profiles_kiff.json und lädt externe Prompt-Dateien"""
         if not os.path.exists(self.profiles_config_path):
             # Fallback profiles
             return {
@@ -59,9 +59,20 @@ class ProfileAgent:
         with open(self.profiles_config_path, "r", encoding="utf-8") as f:
             data = json.load(f)
             # Support both {"profiles": {...}} and direct {...} format
-            if "profiles" in data:
-                return data["profiles"]
-            return data
+            profiles = data["profiles"] if "profiles" in data else data
+            
+            # Load external prompt files if they exist
+            config_dir = os.path.dirname(self.profiles_config_path)
+            prompts_dir = os.path.join(config_dir, "prompts")
+            
+            for profile_name, profile_config in profiles.items():
+                # Check for external .md prompt file
+                prompt_file = os.path.join(prompts_dir, f"{profile_name}.md")
+                if os.path.exists(prompt_file):
+                    with open(prompt_file, "r", encoding="utf-8") as pf:
+                        profile_config["system_prompt"] = pf.read()
+            
+            return profiles
 
     def set_profile(self, profile_name: str) -> bool:
         """Wechselt aktives Profil"""
