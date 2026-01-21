@@ -9,6 +9,7 @@ from typing import List
 import sys
 import json
 from pathlib import Path
+import os
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
@@ -89,13 +90,28 @@ async def get_current_config():
     """
     registry = get_model_registry()
     current_model = registry.get_default_model()
-    
+
+    # Determine current profile from persisted state if available
+    current_profile = "general_chat"
+    try:
+        backend_dir = Path(__file__).resolve().parent.parent.parent
+        profile_file = backend_dir / "documents" / "current_profile.json"
+        if profile_file.exists():
+            data = json.loads(profile_file.read_text(encoding="utf-8"))
+            current_profile = data.get("profile", "general_chat")
+    except Exception:
+        pass
+
+    # Reflect actual LLM server URL from environment
+    llm_server_url = os.getenv("LLM_SERVER_URL", "http://localhost:11434")
+    mcp_server_url = os.getenv("MCP_SERVER_URL", "http://localhost:3000")
+
     return CurrentConfig(
         model=current_model,
-        profile="default",
+        profile=current_profile,
         server=ServerConfig(
-            llama_server_url="http://localhost:8080",
-            mcp_server_url="http://localhost:3000",
+            llama_server_url=llm_server_url,
+            mcp_server_url=mcp_server_url,
             timeout=60
         )
     )

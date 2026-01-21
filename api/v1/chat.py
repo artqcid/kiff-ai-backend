@@ -25,7 +25,11 @@ router = APIRouter()
 # Global instances
 _llm_client = None
 _agent = None
-CHAT_HISTORY_FILE = Path("./documents/chat_history.json")
+
+# Use absolute paths rooted at the backend directory
+BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
+CHAT_HISTORY_FILE = BACKEND_DIR / "documents" / "chat_history.json"
+CURRENT_PROFILE_FILE = BACKEND_DIR / "documents" / "current_profile.json"
 
 
 def get_llm_client():
@@ -36,13 +40,104 @@ def get_llm_client():
     return _llm_client
 
 
+def migrate_chat_history_profiles(active_profile: str):
+    """Annotate history messages with the active profile if missing and persist."""
+    try:
+        if CHAT_HISTORY_FILE.exists():
+            data = []
+            with open(CHAT_HISTORY_FILE, 'r', encoding='utf-8') as f:
+                try:
+                    data = json.load(f)
+                except Exception:
+                    data = []
+
+            changed = False
+            for msg in data:
+                if isinstance(msg, dict):
+                    if 'profile' not in msg or not msg.get('profile'):
+                        msg['profile'] = active_profile or 'general_chat'
+                        changed = True
+            if changed:
+                save_chat_history(data)
+    except Exception as e:
+        print(f"Warning: chat history migration failed: {e}")
+
+
+def read_persisted_profile() -> str:
+    """Read current profile from persisted file, fallback to 'general_chat'."""
+    try:
+        if CURRENT_PROFILE_FILE.exists():
+            data = json.loads(CURRENT_PROFILE_FILE.read_text(encoding="utf-8"))
+            p = data.get("profile")
+            if isinstance(p, str) and p:
+                return p
+    except Exception:
+        pass
+    return "general_chat"
+
+
 def get_agent():
     """Get or create agent instance"""
     global _agent
     if _agent is None:
         llm_client = get_llm_client()
         _agent = ProfileAgent(llm_client)
+        # Initialize from persisted profile if available
+        try:
+            if CURRENT_PROFILE_FILE.exists():
+                data = json.loads(CURRENT_PROFILE_FILE.read_text(encoding="utf-8"))
+                profile_name = data.get("profile")
+                if profile_name:
+                    _agent.set_profile(profile_name)
+        except Exception as e:
+            print(f"Warning: could not load current profile: {e}")
+        # Ensure history messages include a profile for UI rendering
+        try:
+            migrate_chat_history_profiles(_agent.get_current_profile())
+        except Exception as e:
+            print(f"Warning: could not migrate history profiles: {e}")
     return _agent
+
+
+@router.post("/profile/{profile_name}")
+async def set_profile(profile_name: str):
+    """Set active agent profile (used by frontend profile switch)"""
+    agent = get_agent()
+    if agent.set_profile(profile_name):
+        try:
+            CURRENT_PROFILE_FILE.parent.mkdir(parents=True, exist_ok=True)
+            CURRENT_PROFILE_FILE.write_text(json.dumps({"profile": profile_name}), encoding="utf-8")
+        except Exception as e:
+            print(f"Warning: could not persist profile: {e}")
+        # After changing profile, also migrate existing history entries lacking profile
+        try:
+            migrate_chat_history_profiles(agent.get_current_profile())
+        except Exception as e:
+            print(f"Warning: could not migrate history after profile set: {e}")
+        return {"message": f"Profile set to {profile_name}", "profile": profile_name}
+    raise HTTPException(status_code=404, detail=f"Profile not found: {profile_name}")
+
+
+@router.post("/history/migrate_profile")
+async def migrate_history_profile():
+    """Manually trigger migration to annotate messages with current profile."""
+    agent = get_agent()
+    migrate_chat_history_profiles(agent.get_current_profile())
+    return {"message": "History migration completed", "profile": agent.get_current_profile()}
+
+
+@router.get("/profile/current")
+async def get_current_profile():
+    """Return current profile and model configured for that profile"""
+    agent = get_agent()
+    current_prof = agent.get_current_profile()
+    # Ermittle das Model aus dem aktuellen Profil
+    profile_data = agent.profiles.get(current_prof, {})
+    model_for_profile = profile_data.get("model_id", agent.llm.default_model)
+    return {
+        "profile": current_prof,
+        "model": model_for_profile
+    }
 
 
 def load_chat_history() -> List[dict]:
@@ -94,7 +189,9 @@ async def send_message(request: ChatRequest):
         user_message = {
             "role": "user",
             "content": user_message_text,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
+            # Persist current profile context with the user prompt for clarity
+            "profile": agent.get_current_profile()
         }
         chat_history.append(user_message)
         
@@ -117,25 +214,35 @@ async def send_message(request: ChatRequest):
                 for url, content in contexts.items():
                     context_text += f"\n### Quelle: {url}\n{content[:2000]}...\n"
                 enriched_message = context_text + "\n\n" + user_message_text
-            
-            # Use agent.run() with profile from request
+
+            # Resolve target model (override > profile > default)
+            # Resolve active profile preferring request > persisted > agent state
+            active_profile = request.profile or read_persisted_profile() or agent.get_current_profile()
+
             response_text = agent.run(
-                enriched_message, 
-                profile_name=request.profile,
+                enriched_message,
+                profile_name=active_profile,
                 temperature=request.temperature,
-                max_tokens=request.max_tokens
+                max_tokens=request.max_tokens,
+                model=request.model,
             )
+            # Model-Ermittlung nach agent.run() - agent.last_model_used wurde im run() gesetzt
+            model_used = agent.last_model_used or "unknown"
         except Exception as e:
             print(f"Error in agent.run: {e}")
             # Fallback to simple completion if agent fails
             llm_client = get_llm_client()
             response_text = llm_client.complete(user_message_text)
+            active_profile = request.profile or read_persisted_profile() or agent.get_current_profile()
+            model_used = getattr(llm_client, "default_model", None) or "default"
         
         # Add assistant message to history
         assistant_message = {
             "role": "assistant",
             "content": response_text,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
+            "profile": active_profile,
+            "model": model_used
         }
         chat_history.append(assistant_message)
         
@@ -145,8 +252,8 @@ async def send_message(request: ChatRequest):
         return ChatResponse(
             response=response_text,
             session_id=session_id,
-            model=request.model or "default",
-            profile=request.profile or "default",
+            model=model_used,
+            profile=active_profile or "default",
             timestamp=datetime.utcnow().isoformat(),
             metadata={
                 "message_count": len(chat_history)

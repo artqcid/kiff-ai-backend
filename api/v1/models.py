@@ -25,7 +25,7 @@ class ChatRequest(BaseModel):
     message: Optional[str] = Field(None, description="User message (deprecated, use messages)")
     messages: Optional[List[ChatMessage]] = Field(None, description="Chat messages array")
     session_id: Optional[str] = Field(None, description="Chat session ID")
-    profile: Optional[str] = Field("default", description="Agent profile to use")
+    profile: Optional[str] = Field(None, description="Agent profile to use")
     model: Optional[str] = Field(None, description="Model override")
     temperature: Optional[float] = Field(None, ge=0.0, le=2.0, description="Temperature override")
     max_tokens: Optional[int] = Field(None, gt=0, description="Max tokens override")

@@ -1,8 +1,9 @@
 {
-  "default": {
+  "general_chat": {
     "display_name": "Generelle Fragen und Analysen",
     "description": "Allgemeiner KI-Assistent für verschiedene Aufgaben",
     "system_prompt": "Du bist ein hilfreicher KI-Assistent. Antworte präzise und informativ auf Deutsch.",
+    "model_id": "mistral-7b",
     "parameters": {
       "temperature": 0.7,
       "max_tokens": 2048
@@ -12,6 +13,7 @@
     "display_name": "Kreativer Agent",
     "description": "Für kreative Texte, Geschichten und Ideen",
     "system_prompt": "Du bist ein kreativer Schriftsteller. Erstelle originelle und interessante Inhalte auf Deutsch.",
+    "model_id": "mistral-7b",
     "parameters": {
       "temperature": 0.9,
       "max_tokens": 2048
@@ -21,8 +23,19 @@
     "display_name": "Technischer Agent",
     "description": "Für Code, technische Dokumentation und Analysen",
     "system_prompt": "Du bist ein erfahrener Softwareentwickler und technischer Experte. Gib präzise, technische Antworten auf Deutsch.",
+    "model_id": "mistral-7b",
     "parameters": {
       "temperature": 0.5,
+      "max_tokens": 2048
+    }
+  },
+  "deep_analysis": {
+    "display_name": "Tiefe Analyse",
+    "description": "Schritt-für-Schritt-Analysen und gründliches Reasoning",
+    "system_prompt": "Du bist ein analytischer KI-Assistent. Begründe deine Antworten schrittweise und bleibe präzise.",
+    "model_id": "deepseek-r1-qwen",
+    "parameters": {
+      "temperature": 0.4,
       "max_tokens": 2048
     }
   }

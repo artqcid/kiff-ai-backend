@@ -1,98 +1,102 @@
 """
 llm_client.py
 
-HTTP Client für llama.cpp Server auf localhost:8080
-- Unterstützt Completion Endpoint
-- Streaming Support optional
+HTTP Client für Ollama (lokal oder remote)
+- Nutzt /api/generate (Prompt) und /api/chat (Messages)
+- keep_alive zur Schonung von VRAM (6GB RTX 3060)
 """
 
+import os
+from typing import Optional, Dict, Any, List
+
 import requests
-import json
-from typing import Optional, Dict, Any
 
 
 class LLMClient:
-    """Simple HTTP client for llama.cpp server"""
+    """HTTP client for Ollama (backed by llama.cpp)"""
 
-    def __init__(self, base_url: str = "http://localhost:8080"):
-        self.base_url = base_url
-        self.temperature = 0.1
-        self.top_p = 0.9
-        self.top_k = 40
-        self.max_tokens = 512
-        self.timeout = 60
+    def __init__(self, base_url: Optional[str] = None):
+        # Basis-URL konfigurierbar für spätere Remote-Nutzung
+        env_url = os.getenv("LLM_SERVER_URL")
+        self.base_url = base_url or env_url or "http://localhost:11434"
 
-    def complete(self, prompt: str, **kwargs) -> str:
-        """
-        Ruft llama.cpp Completion Endpoint auf
+        # Defaults (überschreibbar per ENV)
+        self.default_model = os.getenv("LLM_DEFAULT_MODEL", "mistral-7b")
+        self.temperature = float(os.getenv("LLM_TEMPERATURE", "0.1"))
+        self.top_p = float(os.getenv("LLM_TOP_P", "0.9"))
+        self.top_k = int(os.getenv("LLM_TOP_K", "40"))
+        self.max_tokens = int(os.getenv("LLM_MAX_TOKENS", "512"))
+        self.timeout = int(os.getenv("LLM_CLIENT_TIMEOUT", "180"))
+        self.keep_alive = os.getenv("LLM_KEEP_ALIVE", "5m")
 
-        Args:
-            prompt: Input prompt
-            **kwargs: Override parameters (temperature, max_tokens, etc.)
+    def _build_options(self, **kwargs) -> Dict[str, Any]:
+        """Merge default and override generation options"""
+        options = {
+            "temperature": kwargs.get("temperature", self.temperature),
+            "top_p": kwargs.get("top_p", self.top_p),
+            "top_k": kwargs.get("top_k", self.top_k),
+            "num_predict": kwargs.get("max_tokens", self.max_tokens),
+        }
 
-        Returns:
-            Generated text
-        """
+        # Remove None to avoid overriding Ollama defaults unintentionally
+        return {k: v for k, v in options.items() if v is not None}
+
+    def complete(self, prompt: str, model: Optional[str] = None, **kwargs) -> str:
+        """Prompt-based completion via Ollama /api/generate"""
+        model_name = model or self.default_model
+        payload = {
+            "model": model_name,
+            "prompt": prompt,
+            "stream": False,
+            "keep_alive": kwargs.get("keep_alive", self.keep_alive),
+            "options": self._build_options(**kwargs),
+        }
+
         try:
-            # Payload für /completion Endpoint
-            payload = {
-                "prompt": prompt,
-                "temperature": kwargs.get("temperature", self.temperature),
-                "top_p": kwargs.get("top_p", self.top_p),
-                "top_k": kwargs.get("top_k", self.top_k),
-                "n_predict": kwargs.get("max_tokens", self.max_tokens),
-                "stop": kwargs.get("stop", []),
-                "stream": False,
-            }
-
             response = requests.post(
-                f"{self.base_url}/completion",
+                f"{self.base_url}/api/generate",
                 json=payload,
                 timeout=self.timeout,
             )
-
             response.raise_for_status()
             result = response.json()
-
-            # llama.cpp gibt content in "content" Feld zurück
-            return result.get("content", "").strip()
-
+            # Ollama returns text in "response"
+            return result.get("response", "").strip()
         except requests.exceptions.RequestException as e:
             raise RuntimeError(f"LLM Request failed: {e}")
         except Exception as e:
             raise RuntimeError(f"Unexpected error: {e}")
 
-    def chat(self, messages: list, **kwargs) -> str:
-        """
-        Chat-style completion
+    def chat(self, messages: List[Dict[str, Any]], model: Optional[str] = None, **kwargs) -> str:
+        """Chat-style completion via Ollama /api/chat"""
+        model_name = model or self.default_model
+        payload = {
+            "model": model_name,
+            "messages": messages,
+            "stream": False,
+            "keep_alive": kwargs.get("keep_alive", self.keep_alive),
+            "options": self._build_options(**kwargs),
+        }
 
-        Args:
-            messages: List of dicts with 'role' and 'content'
-            **kwargs: Override parameters
-
-        Returns:
-            Generated text
-        """
-        # Convert messages to prompt
-        prompt = ""
-        for msg in messages:
-            role = msg.get("role", "user")
-            content = msg.get("content", "")
-            if role == "system":
-                prompt += f"System: {content}\n"
-            elif role == "user":
-                prompt += f"User: {content}\n"
-            elif role == "assistant":
-                prompt += f"Assistant: {content}\n"
-
-        prompt += "Assistant: "
-
-        return self.complete(prompt, **kwargs)
+        try:
+            response = requests.post(
+                f"{self.base_url}/api/chat",
+                json=payload,
+                timeout=self.timeout,
+            )
+            response.raise_for_status()
+            result = response.json()
+            message = result.get("message", {})
+            return message.get("content", "").strip()
+        except requests.exceptions.RequestException as e:
+            raise RuntimeError(f"LLM Request failed: {e}")
+        except Exception as e:
+            raise RuntimeError(f"Unexpected error: {e}")
 
     def is_healthy(self) -> bool:
-        """Check if llama.cpp server is running"""
+        """Check if Ollama server is reachable"""
         try:
-            response = requests.get(f"{self.base_url}/health", timeout=2)
+            response = requests.get(f"{self.base_url}/api/tags", timeout=2)
             return response.status_code == 200
-        except:
+        except Exception:
             return False

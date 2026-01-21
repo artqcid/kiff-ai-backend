@@ -30,15 +30,16 @@ class ProfileAgent:
         self.llm = llm_client
         self.profiles_config_path = profiles_config_path
         self.profiles = self._load_profiles()
-        self.current_profile = "default"
+        self.current_profile = "general_chat"
         self.context_manager = ContextManager()
+        self.last_model_used: Optional[str] = None
 
     def _load_profiles(self) -> Dict:
         """Lädt Profile aus profiles_kiff.json"""
         if not os.path.exists(self.profiles_config_path):
             # Fallback profiles
             return {
-                "default": {
+                "general_chat": {
                     "name": "Standard Assistant",
                     "system_prompt": "Du bist ein hilfreicher Assistent.",
                     "description": "Allgemeiner Assistent"
@@ -94,10 +95,21 @@ class ProfileAgent:
         active_profile = profile_name if profile_name else self.current_profile
         
         if active_profile not in self.profiles:
-            active_profile = "default"
+            active_profile = "general_chat"
 
         profile = self.profiles[active_profile]
         system_prompt = profile.get("system_prompt", "")
+        
+        # Model-Auflösung: request.model > profile.model_id > llm.default_model
+        model_name = kwargs.pop("model", None) or profile.get("model_id") or getattr(self.llm, "default_model", "mistral-7b")
+        
+        # WICHTIG: Setze last_model_used VOR dem LLM-Aufruf für korrekte Rückgabe
+        self.last_model_used = model_name
+
+        # Profile-Parameter als Defaults verwenden
+        params = profile.get("parameters", {}) or {}
+        temperature = kwargs.get("temperature", params.get("temperature"))
+        max_tokens = kwargs.get("max_tokens", params.get("max_tokens"))
 
         # Baue Messages
         messages = [
@@ -107,7 +119,12 @@ class ProfileAgent:
 
         # Rufe LLM auf
         try:
-            response = self.llm.chat(messages, **kwargs)
+            response = self.llm.chat(
+                messages,
+                model=model_name,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
             return response
         except Exception as e:
             return f"Error: {str(e)}"
