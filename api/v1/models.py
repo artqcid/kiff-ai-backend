@@ -148,6 +148,53 @@ class DocumentUploadResponse(BaseModel):
     message: str = Field(..., description="Success message")
 
 
+class DocumentSessionResponse(BaseModel):
+    """Response after creating or updating a document session"""
+    session_id: str = Field(..., description="Document session ID")
+    filename: str = Field(..., description="Original filename")
+    message: str = Field(..., description="Status message")
+
+
+class DocumentSessionMessage(BaseModel):
+    """Simple message response for session operations"""
+    session_id: str = Field(..., description="Document session ID")
+    message: str = Field(..., description="Status message")
+
+
+class DocumentVersionInfo(BaseModel):
+    """A saved version of a session state"""
+    version_id: str = Field(..., description="Version identifier (timestamp based)")
+    filename: str = Field(..., description="Stored filename")
+    size: int = Field(..., description="File size in bytes")
+    created_at: str = Field(..., description="ISO timestamp")
+
+
+class DocumentSessionHistoryResponse(BaseModel):
+    """History of saved versions for a session"""
+    session_id: str = Field(..., description="Document session ID")
+    versions: list[DocumentVersionInfo] = Field(default_factory=list)
+
+
+class GoogleImportRequest(BaseModel):
+    """Request to import a Google Doc as DOCX"""
+    doc_id: str = Field(..., description="Google Docs file ID")
+
+
+class GoogleExportRequest(BaseModel):
+    """Request to export a session DOCX to Google Drive"""
+    access_token: str = Field(..., description="OAuth2 access token with Drive scope")
+    folder_id: str | None = Field(default=None, description="Optional Drive folder to upload into")
+    name: str | None = Field(default=None, description="Optional filename in Drive (defaults to edited-<original>)")
+
+
+class GoogleExportResponse(BaseModel):
+    """Response after exporting to Google Drive"""
+    session_id: str = Field(..., description="Document session ID")
+    file_id: str = Field(..., description="Created file ID in Drive")
+    name: str = Field(..., description="Uploaded filename")
+    message: str = Field(..., description="Status message")
+
+
 # ============================================================================
 # ERROR MODELS
 # ============================================================================
