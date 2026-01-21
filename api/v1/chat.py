@@ -228,6 +228,15 @@ async def clear_history():
     """
     try:
         save_chat_history([])
+        
+        # Reset agent conversation history (but keep MCP context)
+        try:
+            agent = get_agent()
+            if hasattr(agent, 'conversation_history'):
+                agent.conversation_history = []
+        except Exception as e:
+            print(f"Warning: Could not reset agent history: {e}")
+        
         return {"message": "Chat history cleared"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error clearing history: {str(e)}")
