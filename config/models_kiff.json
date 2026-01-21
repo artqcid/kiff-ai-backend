@@ -1,11 +1,112 @@
 {
-  "models": {
-    "mistral-7b": {
-      "model_path": "D:/AI-Models/llama/mistral/mistral-7b-instruct-v0.2.Q4_K_M.gguf",
-      "gpu_layers": 25,
-      "context_size": 8192,
-      "description": "Mistral 7B Instruct v0.2 Q4_K_M",
-      "is_default": true
+  "providers": {
+    "lokal": {
+      "models": {
+        "mistral-7b": {
+          "model_id": "mistral-7b",
+          "display_name": "Mistral 7B",
+          "model_path": "D:/AI-Models/llama/mistral/mistral-7b-instruct-v0.2.Q4_K_M.gguf",
+          "gpu_layers": 25,
+          "context_size": 8192,
+          "description": "Mistral 7B Instruct v0.2 Q4_K_M - Schnell und effizient",
+          "short_name": "mistral7b",
+          "is_default": true,
+          "capabilities": ["chat", "instruction-following"],
+          "metadata": {
+            "context": "8K",
+            "speed": "~40 tokens/s (RTX 3060)",
+            "cost": "Kostenlos (Lokal)",
+            "request_limit": "Unbegrenzt",
+            "token_limit": "Hardware-abhängig"
+          }
+        },
+        "deepseek-r1-qwen": {
+          "model_id": "deepseek-r1-qwen",
+          "display_name": "DeepSeek R1 Qwen 7B",
+          "model_path": "D:/AI-Models/llama/deepseek/DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf",
+          "gpu_layers": 22,
+          "context_size": 8192,
+          "description": "DeepSeek-R1 Distill Qwen 7B Q4_K_M - Reasoning-fokussiert",
+          "short_name": "deepseek7b",
+          "is_default": false,
+          "capabilities": ["chat", "reasoning", "analysis"],
+          "metadata": {
+            "context": "8K",
+            "speed": "~30 tokens/s (RTX 3060)",
+            "cost": "Kostenlos (Lokal)",
+            "request_limit": "Unbegrenzt",
+            "token_limit": "Hardware-abhängig"
+          }
+        }
+      }
+    },
+    "groq": {
+      "models": {
+        "gemma2-9b-it": {
+          "model_id": "gemma2-9b-it",
+          "display_name": "Gemma 2 9B",
+          "description": "Google Gemma 2 9B Instruct - Schnellstes Modell",
+          "short_name": "gemma2",
+          "context_size": 8192,
+          "is_default": true,
+          "capabilities": ["chat", "instruction-following", "fast-inference"],
+          "metadata": {
+            "context": "8K",
+            "speed": "1150 TPM",
+            "cost": "$0.20/$0.30 per 1k (kostenlos im Free Tier)",
+            "request_limit": "30/min (Free), 1K/min (Paid)",
+            "token_limit": "15K/min (Free), 250K/min (Paid)"
+          }
+        },
+        "llama-3.1-8b-instant": {
+          "model_id": "llama-3.1-8b-instant",
+          "display_name": "Llama 3.1 8B",
+          "description": "Meta Llama 3.1 8B - Große Context-Fenster",
+          "short_name": "llama8b",
+          "context_size": 131072,
+          "is_default": false,
+          "capabilities": ["chat", "instruction-following", "large-context"],
+          "metadata": {
+            "context": "131K",
+            "speed": "560 TPM",
+            "cost": "$0.05/$0.08 per 1k (kostenlos im Free Tier)",
+            "request_limit": "30/min (Free), 1K/min (Paid)",
+            "token_limit": "15K/min (Free), 250K/min (Paid)"
+          }
+        },
+        "llama-3.3-70b-versatile": {
+          "model_id": "llama-3.3-70b-versatile",
+          "display_name": "Llama 3.3 70B",
+          "description": "Meta Llama 3.3 70B - Beste Qualität für Reasoning",
+          "short_name": "llama70b",
+          "context_size": 131072,
+          "is_default": false,
+          "capabilities": ["chat", "reasoning", "code-generation", "analysis"],
+          "metadata": {
+            "context": "131K",
+            "speed": "280 TPM",
+            "cost": "$0.59/$0.79 per 1k (kostenlos im Free Tier)",
+            "request_limit": "30/min (Free), 1K/min (Paid)",
+            "token_limit": "15K/min (Free), 250K/min (Paid)"
+          }
+        },
+        "mixtral-8x7b-32768": {
+          "model_id": "mixtral-8x7b-32768",
+          "display_name": "Mixtral 8x7B",
+          "description": "Mixtral 8x7B - Exzellent für Multi-Task",
+          "short_name": "mixtral",
+          "context_size": 32768,
+          "is_default": false,
+          "capabilities": ["chat", "multi-task", "code-generation"],
+          "metadata": {
+            "context": "32K",
+            "speed": "580 TPM",
+            "cost": "$0.24/$0.24 per 1k (kostenlos im Free Tier)",
+            "request_limit": "30/min (Free), 1K/min (Paid)",
+            "token_limit": "15K/min (Free), 250K/min (Paid)"
+          }
+        }
+      }
     }
   },
   "adapters": {}

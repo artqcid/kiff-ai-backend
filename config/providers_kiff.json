@@ -1,0 +1,102 @@
+{
+  "providers": {
+    "lokal": {
+      "name": "Lokal (Ollama)",
+      "display_name": "Lokal",
+      "type": "ollama",
+      "enabled": true,
+      "description": "Lokale LLM-Inferenz mit Ollama",
+      "base_url": "${LLM_SERVER_URL:http://localhost:11434}",
+      "requires_api_key": false,
+      "features": {
+        "streaming": true,
+        "function_calling": false,
+        "vision": false
+      },
+      "rate_limits": {
+        "requests_per_minute": null,
+        "tokens_per_minute": null,
+        "note": "Keine Limits bei lokaler Inferenz, nur durch Hardware begrenzt"
+      },
+      "cost": {
+        "input_per_1k_tokens": 0,
+        "output_per_1k_tokens": 0,
+        "currency": "USD"
+      }
+    },
+    "groq": {
+      "name": "Groq API",
+      "display_name": "Groq",
+      "type": "groq",
+      "enabled": true,
+      "description": "Schnelle Cloud-Inferenz mit Groq LPU™ Inference Engine",
+      "base_url": "https://api.groq.com/openai/v1",
+      "requires_api_key": true,
+      "api_key_env": "GROQ_API_KEY",
+      "features": {
+        "streaming": true,
+        "function_calling": true,
+        "vision": false
+      },
+      "rate_limits": {
+        "requests_per_minute": 30,
+        "tokens_per_minute": 15000,
+        "requests_per_day": 14400,
+        "note": "Free tier limits, kann mit paid tier erhöht werden"
+      },
+      "cost": {
+        "note": "Groq bietet aktuell kostenlosen Zugang für viele Modelle",
+        "currency": "USD"
+      }
+    },
+    "openai": {
+      "name": "OpenAI API",
+      "display_name": "OpenAI",
+      "type": "openai",
+      "enabled": false,
+      "description": "GPT-4 und andere OpenAI-Modelle (kostenpflichtig)",
+      "base_url": "https://api.openai.com/v1",
+      "requires_api_key": true,
+      "api_key_env": "OPENAI_API_KEY",
+      "features": {
+        "streaming": true,
+        "function_calling": true,
+        "vision": true
+      },
+      "rate_limits": {
+        "requests_per_minute": null,
+        "tokens_per_minute": null,
+        "note": "Limits abhängig vom Tier (Free/Paid)"
+      },
+      "cost": {
+        "note": "Siehe OpenAI Pricing: https://openai.com/pricing",
+        "currency": "USD"
+      }
+    },
+    "huggingface": {
+      "name": "Hugging Face Inference",
+      "display_name": "HuggingFace",
+      "type": "huggingface",
+      "enabled": false,
+      "description": "Hugging Face Inference API (begrenzt kostenlos)",
+      "base_url": "https://api-inference.huggingface.co",
+      "requires_api_key": true,
+      "api_key_env": "HUGGINGFACE_API_KEY",
+      "features": {
+        "streaming": false,
+        "function_calling": false,
+        "vision": true
+      },
+      "rate_limits": {
+        "requests_per_minute": 30,
+        "tokens_per_minute": null,
+        "note": "Free tier mit Rate Limits"
+      },
+      "cost": {
+        "note": "Kostenlos mit Limits, Inference Endpoints kostenpflichtig",
+        "currency": "USD"
+      }
+    }
+  },
+  "default_provider": "lokal"
+}

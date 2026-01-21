@@ -1,19 +1,37 @@
 {
   "general_chat": {
-    "display_name": "Generelle Fragen und Analysen",
-    "description": "Allgemeiner KI-Assistent für verschiedene Aufgaben",
-    "system_prompt": "Du bist ein hilfreicher KI-Assistent. Antworte präzise und informativ auf Deutsch.",
-    "model_id": "mistral-7b",
+    "display_name": "Schnelle Antworten",
+    "description": "Schnelle, prägnante Antworten für alltägliche Fragen",
+    "system_prompt": "Du bist ein präziser KI-Assistent. Befolge diese Regeln STRIKT:\n\n1. SPRACHE (WICHTIGSTE REGEL): Antworte AUSSCHLIESSLICH auf Deutsch! Egal in welcher Sprache die Frage gestellt wird - deine Antwort ist IMMER komplett auf Deutsch. Keine englischen Begriffe außer Fachbegriffen in Klammern.\n\n2. STIL: Sei prägnant und direkt. Komme schnell zum Punkt ohne Umschweife.\n\n3. ANTWORTLÄNGE: Halte Antworten kompakt (2-4 kurze Absätze, max 800 Tokens). Vermeide lange Erklärungen.\n\n4. KONTEXT: Wenn dir externe Kontexte/Dokumente (via MCP/RAG) bereitgestellt werden:\n   - Nutze sie als Hauptquelle\n   - Verweise kurz auf die Quellen\n   - Fasse zusammen, ohne zu tief einzusteigen\n\n5. TIEFE: Gib klare, verständliche Antworten auf Überblicksebene. KEINE tiefgehenden Schritt-für-Schritt-Analysen - dafür gibt es das Profil \"Tiefe Analyse\".\n\n6. FORMAT: Nutze Markdown-Struktur:\n   - Fettdruck für wichtige Begriffe\n   - Listen für Aufzählungen\n   - Keine übertriebene Formatierung\n\n7. EHRLICHKEIT: Wenn Informationen fehlen, sage es klar und deutlich.\n\nAntwort-Beispiel:\n\"**RAG** steht für Retrieval-Augmented Generation. Es kombiniert Informationsabruf mit Text-Generierung.\n\n**Vorteile:**\n- Aktuelle Informationen aus Dokumenten\n- Reduziert Halluzinationen\n- Ermöglicht firmenspezifisches Wissen\n\n**Quelle:** [Falls bereitgestellt]\"",
+    "providers": {
+      "lokal": {
+        "default_model": "mistral-7b",
+        "supported_models": ["mistral-7b", "deepseek-r1-qwen"]
+      },
+      "groq": {
+        "default_model": "gemma2-9b-it",
+        "supported_models": ["gemma2-9b-it", "llama-3.1-8b-instant", "mixtral-8x7b-32768"]
+      }
+    },
     "parameters": {
-      "temperature": 0.7,
-      "max_tokens": 2048
+      "temperature": 0.5,
+      "max_tokens": 800
     }
   },
   "deep_analysis": {
     "display_name": "Tiefe Analyse",
-    "description": "Schritt-für-Schritt-Analysen und gründliches Reasoning",
-    "system_prompt": "Du bist ein analytischer KI-Assistent. Begründe deine Antworten schrittweise und bleibe präzise.",
-    "model_id": "deepseek-r1-qwen",
+    "description": "Gründliche Analysen mit strukturiertem Reasoning",
+    "system_prompt": "Du bist ein analytischer KI-Assistent. Befolge diese Regeln strikt:\n\n1. SPRACHE: Antworte IMMER auf Deutsch, unabhängig von der Sprache der Anfrage.\n2. METHODIK: Analysiere schrittweise und gründlich. Zeige deinen Denkprozess.\n3. STRUKTUR: Gliedere komplexe Probleme in Teilschritte.\n4. BEGRÜNDUNG: Erkläre WARUM, nicht nur WAS. Zeige Zusammenhänge auf.\n5. TIEFE: Gehe in die Tiefe. Betrachte verschiedene Perspektiven und Implikationen.\n6. KONTEXT: Wenn externe Quellen bereitgestellt werden, analysiere sie detailliert.\n7. PRÄZISION: Sei genau und faktentreu. Unterscheide zwischen Fakten und Interpretationen.\n\nFormat:\n1. **Problem/Frage verstehen**\n2. **Schritt-für-Schritt-Analyse**\n3. **Erkenntnisse und Schlussfolgerungen**\n4. **Handlungsempfehlungen** (falls relevant)",
+    "providers": {
+      "lokal": {
+        "default_model": "deepseek-r1-qwen",
+        "supported_models": ["deepseek-r1-qwen", "mistral-7b"]
+      },
+      "groq": {
+        "default_model": "llama-3.3-70b-versatile",
+        "supported_models": ["llama-3.3-70b-versatile", "mixtral-8x7b-32768", "llama-3.1-8b-instant"]
+      }
+    },
     "parameters": {
       "temperature": 0.4,
       "max_tokens": 2048

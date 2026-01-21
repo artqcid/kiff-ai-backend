@@ -1,9 +1,7 @@
 {
   "llama_server": {
-    "launch_script": "../scripts/start_llama_server.ps1",
-    "health_check_url": "http://localhost:8080/health",
-    "startup_timeout_seconds": 30,
-    "retry_delay_seconds": 2
+    "deprecated": true,
+    "note": "llama.cpp process launcher removed; Ollama is used instead"
   },
   "mcp_server": {
     "launch_script": "../scripts/start_mcp_server.ps1",

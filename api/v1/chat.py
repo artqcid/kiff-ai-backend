@@ -80,8 +80,9 @@ def get_agent():
     """Get or create agent instance"""
     global _agent
     if _agent is None:
-        llm_client = get_llm_client()
-        _agent = ProfileAgent(llm_client)
+        from backend.core.provider_manager import get_provider_manager
+        provider_manager = get_provider_manager()
+        _agent = ProfileAgent(llm_client=None, provider_manager=provider_manager)
         # Initialize from persisted profile if available
         try:
             if CURRENT_PROFILE_FILE.exists():
@@ -131,12 +132,24 @@ async def get_current_profile():
     """Return current profile and model configured for that profile"""
     agent = get_agent()
     current_prof = agent.get_current_profile()
-    # Ermittle das Model aus dem aktuellen Profil
-    profile_data = agent.profiles.get(current_prof, {})
-    model_for_profile = profile_data.get("model_id", agent.llm.default_model)
+    
+    # Get current provider
+    from backend.core.provider_manager import get_provider_manager
+    provider_manager = get_provider_manager()
+    current_provider = provider_manager.get_current_provider_name()
+    
+    # Get default model for current profile + provider
+    model_for_profile = agent.get_default_model_for_profile(current_prof, current_provider)
+    
+    if not model_for_profile:
+        # Fallback to first supported model
+        supported_models = agent.get_models_for_profile(current_prof, current_provider)
+        model_for_profile = supported_models[0] if supported_models else "unknown"
+    
     return {
         "profile": current_prof,
-        "model": model_for_profile
+        "model": model_for_profile,
+        "provider": current_provider
     }
 
 
@@ -219,22 +232,25 @@ async def send_message(request: ChatRequest):
             # Resolve active profile preferring request > persisted > agent state
             active_profile = request.profile or read_persisted_profile() or agent.get_current_profile()
 
-            response_text = agent.run(
+            response_text = await agent.run(
                 enriched_message,
                 profile_name=active_profile,
                 temperature=request.temperature,
                 max_tokens=request.max_tokens,
                 model=request.model,
             )
-            # Model-Ermittlung nach agent.run() - agent.last_model_used wurde im run() gesetzt
+            # Model und Provider-Ermittlung nach agent.run() - wurde im run() gesetzt
             model_used = agent.last_model_used or "unknown"
+            provider_used = agent.last_provider_used or "lokal"
         except Exception as e:
             print(f"Error in agent.run: {e}")
-            # Fallback to simple completion if agent fails
-            llm_client = get_llm_client()
-            response_text = llm_client.complete(user_message_text)
+            import traceback
+            traceback.print_exc()
+            # Return error message
+            response_text = f"⚠️ Fehler bei der Anfrage: {str(e)}"
             active_profile = request.profile or read_persisted_profile() or agent.get_current_profile()
-            model_used = getattr(llm_client, "default_model", None) or "default"
+            model_used = "error"
+            provider_used = "error"
         
         # Add assistant message to history
         assistant_message = {
@@ -242,7 +258,8 @@ async def send_message(request: ChatRequest):
             "content": response_text,
             "timestamp": datetime.utcnow().isoformat(),
             "profile": active_profile,
-            "model": model_used
+            "model": model_used,
+            "provider": provider_used
         }
         chat_history.append(assistant_message)
         
@@ -256,7 +273,8 @@ async def send_message(request: ChatRequest):
             profile=active_profile or "default",
             timestamp=datetime.utcnow().isoformat(),
             metadata={
-                "message_count": len(chat_history)
+                "message_count": len(chat_history),
+                "provider": provider_used
             }
         )
         

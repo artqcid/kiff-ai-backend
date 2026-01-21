@@ -1,10 +1,8 @@
 """
 server_manager.py
 
-Verwaltet Lifecycle von llama.cpp und MCP Servern
-- Startet Server mit Health-Checks
-- Wechselt Modelle ohne Server-Neuzusammensetzung (falls möglich)
-- Stoppt Server sauber
+Historisch für llama.cpp Process-Handling. Nicht mehr genutzt seit Umstieg auf Ollama.
+Belassen für Referenz; kann entfernt werden, wenn keine Altpfade mehr genutzt werden.
 """
 
 import json
@@ -35,13 +33,11 @@ class ServerManager:
     def _load_config(self) -> Dict:
         """Lädt servers_kiff.json"""
         if not os.path.exists(self.config_path):
-            # Fallback config
+            # Fallback legacy config (deprecated; Ollama used instead)
             return {
                 "llama_server": {
-                    "launch_script": "scripts/start_llama_server.ps1",
-                    "health_check_url": "http://localhost:8080/health",
-                    "startup_timeout_seconds": 30,
-                    "retry_delay_seconds": 2
+                    "deprecated": True,
+                    "note": "llama.cpp launcher removed; use Ollama"
                 },
                 "mcp_server": {
                     "launch_script": "scripts/start_mcp_server.ps1"
