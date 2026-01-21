@@ -10,6 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 import sys
+import subprocess
+import platform
 from pathlib import Path
 
 # Add parent directory to path for imports
@@ -36,10 +38,44 @@ async def lifespan(app: FastAPI):
     # Startup
     print("🚀 Starting KIFF API Server...")
     
+    # Auto-start Ollama if not running
+    try:
+        print("🔍 Checking Ollama status...")
+        _llm_client = LLMClient()
+        if not _llm_client.is_healthy():
+            print("⚙️ Ollama not running, attempting to start...")
+            if platform.system() == "Windows":
+                # Windows: Start Ollama app in background
+                subprocess.Popen(["ollama", "serve"], 
+                               creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0,
+                               stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL)
+            else:
+                # Linux/Mac: Start Ollama service
+                subprocess.Popen(["ollama", "serve"],
+                               stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL)
+            
+            # Wait a moment for Ollama to start
+            import time
+            for i in range(10):
+                time.sleep(1)
+                if _llm_client.is_healthy():
+                    print("✅ Ollama started successfully")
+                    break
+            else:
+                print("⚠️ Ollama did not start within timeout, continuing anyway...")
+        else:
+            print("✅ Ollama is already running")
+    except Exception as e:
+        print(f"⚠️ Could not auto-start Ollama: {e}")
+        print("   Please start Ollama manually: 'ollama serve'")
+    
     # Initialize components
     try:
         _model_registry = ModelRegistry()
-        _llm_client = LLMClient()
+        if not _llm_client:
+            _llm_client = LLMClient()
         _profile_agent = ProfileAgent(_llm_client)
         _server_manager = ServerManager()
         

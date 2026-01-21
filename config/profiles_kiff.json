@@ -9,26 +9,6 @@
       "max_tokens": 2048
     }
   },
-  "creative": {
-    "display_name": "Kreativer Agent",
-    "description": "Für kreative Texte, Geschichten und Ideen",
-    "system_prompt": "Du bist ein kreativer Schriftsteller. Erstelle originelle und interessante Inhalte auf Deutsch.",
-    "model_id": "mistral-7b",
-    "parameters": {
-      "temperature": 0.9,
-      "max_tokens": 2048
-    }
-  },
-  "technical": {
-    "display_name": "Technischer Agent",
-    "description": "Für Code, technische Dokumentation und Analysen",
-    "system_prompt": "Du bist ein erfahrener Softwareentwickler und technischer Experte. Gib präzise, technische Antworten auf Deutsch.",
-    "model_id": "mistral-7b",
-    "parameters": {
-      "temperature": 0.5,
-      "max_tokens": 2048
-    }
-  },
   "deep_analysis": {
     "display_name": "Tiefe Analyse",
     "description": "Schritt-für-Schritt-Analysen und gründliches Reasoning",
