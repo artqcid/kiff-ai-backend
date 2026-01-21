@@ -12,7 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 from backend.api.v1.models import HealthResponse, StatusResponse, ServiceStatus
-from src.server_manager_kiff import ServerManager
+from backend.core.server_manager import ServerManager
 
 router = APIRouter()
 

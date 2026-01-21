@@ -15,7 +15,7 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from backend.api.v1 import chat, config, health, documents, server
+from backend.api.v1 import chat, config, health, documents, server, mcp
 from backend.core.server_manager import ServerManager
 from backend.core.model_registry import ModelRegistry
 from backend.core.llm_client import LLMClient
@@ -96,6 +96,7 @@ app.include_router(server.router, prefix="/api/v1/server", tags=["Server Managem
 app.include_router(config.router, prefix="/api/v1", tags=["Configuration"])
 app.include_router(chat.router, prefix="/api/v1", tags=["Chat"])
 app.include_router(documents.router, prefix="/api/v1", tags=["Documents"])
+app.include_router(mcp.router, prefix="/api/v1/mcp", tags=["MCP"])
 
 
 @app.get("/")

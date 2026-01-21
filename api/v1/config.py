@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 from backend.api.v1.models import ModelInfo, ProfileInfo, CurrentConfig, ServerConfig
-from src.config.model_registry_kiff import ModelRegistry
+from backend.core.model_registry import ModelRegistry
 
 router = APIRouter()
 

@@ -46,3 +46,6 @@ htmlcov/
 # Environment
 .env
 .env.local
+
+# Cache
+cache/*.txt

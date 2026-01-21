@@ -17,8 +17,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 from backend.api.v1.models import (
     ChatRequest, ChatResponse, ChatSession, ChatSessionList, ChatMessage
 )
-from src.llm.llama_client_kiff import LlamaClientKiff
-from src.agents.profile_agent_kiff import ProfileAgentKiff
+from backend.core.llm_client import LLMClient
+from backend.core.profile_agent import ProfileAgent
 
 router = APIRouter()
 
@@ -32,7 +32,7 @@ def get_llm_client():
     """Get or create LLM client instance"""
     global _llm_client
     if _llm_client is None:
-        _llm_client = LlamaClientKiff()
+        _llm_client = LLMClient()
     return _llm_client
 
 
@@ -41,7 +41,7 @@ def get_agent():
     global _agent
     if _agent is None:
         llm_client = get_llm_client()
-        _agent = ProfileAgentKiff(llm=llm_client)
+        _agent = ProfileAgent(llm_client)
     return _agent
 
 
@@ -69,7 +69,7 @@ def save_chat_history(chat_history: List[dict]):
 @router.post("/chat/messages", response_model=ChatResponse)
 async def send_message(request: ChatRequest):
     """
-    Send a message and get AI response
+    Send a message and get AI response with optional web context via @tags
     """
     try:
         agent = get_agent()
@@ -88,10 +88,28 @@ async def send_message(request: ChatRequest):
         }
         chat_history.append(user_message)
         
+        # Fetch web contexts if @tags are present
+        contexts = {}
+        try:
+            contexts = await agent.get_contexts_for_prompt(request.message)
+            if contexts:
+                print(f"Fetched {len(contexts)} web contexts for message")
+        except Exception as e:
+            print(f"Error fetching web contexts: {e}")
+            # Continue without contexts
+        
         # Get AI response
         # TODO: Implement proper profile selection and agent invocation
         try:
-            response_text = agent.chat(request.message)
+            # If we have contexts, enrich the message
+            enriched_message = request.message
+            if contexts:
+                context_text = "\n\n## Business Context\n"
+                for url, content in contexts.items():
+                    context_text += f"\n### Quelle: {url}\n{content[:2000]}...\n"
+                enriched_message = context_text + "\n\n" + request.message
+            
+            response_text = agent.chat(enriched_message)
         except Exception as e:
             # Fallback to simple completion if agent fails
             llm_client = get_llm_client()

@@ -9,6 +9,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application
 COPY . .
 
+# Create cache directory
+RUN mkdir -p /app/cache
+
 # Expose port
 EXPOSE 8000
 

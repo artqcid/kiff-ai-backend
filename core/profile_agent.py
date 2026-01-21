@@ -4,12 +4,14 @@ profile_agent.py
 Multi-Profil Agent
 - default, kiff, coding Profile
 - Lädt System Prompts aus profiles_kiff.json
+- Unterstützt Web-Context Fetching via @tags
 """
 
 import json
 import os
 from typing import Dict, Optional
 from backend.core.llm_client import LLMClient
+from backend.mcp import ContextManager
 
 
 class ProfileAgent:
@@ -29,6 +31,7 @@ class ProfileAgent:
         self.profiles_config_path = profiles_config_path
         self.profiles = self._load_profiles()
         self.current_profile = "default"
+        self.context_manager = ContextManager()
 
     def _load_profiles(self) -> Dict:
         """Lädt Profile aus profiles_kiff.json"""
@@ -109,3 +112,36 @@ class ProfileAgent:
     def get_current_profile(self) -> str:
         """Gibt Namen des aktuellen Profils zurück"""
         return self.current_profile
+
+    def detect_profile(self, prompt: str) -> str:
+        """
+        Erkennt Profil basierend auf Keywords im Prompt
+        
+        Args:
+            prompt: User-Prompt Text
+            
+        Returns:
+            Profil-Name ("kiff" oder "default")
+        """
+        p = prompt.lower()
+        if any(k in p for k in ["kiff", "kiff2.0", "betra"]):
+            return "kiff"
+        return "default"
+
+    async def get_contexts_for_prompt(self, prompt: str) -> Dict[str, str]:
+        """
+        Fetcht Web-Contexts für einen Prompt basierend auf @tags
+        
+        Args:
+            prompt: User-Prompt mit potentiellen @tags
+            
+        Returns:
+            Dict mapping URLs zu deren Text-Inhalten
+        """
+        try:
+            contexts = await self.context_manager.fetch_contexts_for_prompt(prompt)
+            return contexts
+        except Exception as e:
+            # Log error but don't fail
+            print(f"Error fetching contexts: {e}")
+            return {}

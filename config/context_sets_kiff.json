@@ -1,0 +1,155 @@
+{
+  "@word": {
+    "urls": [
+      "https://support.microsoft.com/de-de/word",
+      "https://learn.microsoft.com/de-de/office/word/"
+    ]
+  },
+
+  "@excel": {
+    "urls": [
+      "https://support.microsoft.com/de-de/excel",
+      "https://learn.microsoft.com/de-de/office/excel/"
+    ]
+  },
+
+  "@google_docs": {
+    "urls": [
+      "https://support.google.com/docs/?hl=de",
+      "https://workspace.google.com/intl/de/products/docs/"
+    ]
+  },
+
+  "@google_sheets": {
+    "urls": [
+      "https://support.google.com/docs/?hl=de#topic=9199554",
+      "https://workspace.google.com/intl/de/products/sheets/"
+    ]
+  },
+
+  "@google_workspace": {
+    "urls": [
+      "https://workspace.google.com/intl/de/",
+      "https://support.google.com/a/?hl=de"
+    ]
+  },
+
+  "@camunda": {
+    "urls": [
+      "https://docs.camunda.org/",
+      "https://camunda.com/bpmn/"
+    ]
+  },
+
+  "@bpmn": {
+    "urls": [
+      "https://www.omg.org/spec/BPMN/2.0/",
+      "https://camunda.com/bpmn/reference/"
+    ]
+  },
+
+  "@schweizer_vereinswesen": {
+    "urls": [
+      "https://www.zgb.ch/",
+      "https://www.kmu.admin.ch/kmu/de/home/praktisches-wissen/kmu-gruenden/firmengruendung/vereine.html"
+    ]
+  },
+
+  "@vereins_vorstand": {
+    "urls": [
+      "https://www.vereinsrecht.ch/",
+      "https://www.zgb.ch/"
+    ]
+  },
+
+  "@event_technik": {
+    "urls": [
+      "https://www.vplt.ch/",
+      "https://www.eventtechnik.ch/"
+    ]
+  },
+
+  "@audio_technik": {
+    "urls": [
+      "https://www.synaudio.ch/",
+      "https://www.prosound.ch/"
+    ]
+  },
+
+  "@netzwerk_technik": {
+    "urls": [
+      "https://www.switch.ch/",
+      "https://www.bakom.admin.ch/"
+    ]
+  },
+
+  "@security": {
+    "urls": [
+      "https://www.babs.admin.ch/",
+      "https://www.sicherheitsportal.ch/"
+    ]
+  },
+
+  "@schweizer_sicherheitskonzepte": {
+    "urls": [
+      "https://www.babs.admin.ch/de/aufgabenbabs/risiken.html",
+      "https://www.kapo.zh.ch/"
+    ]
+  },
+
+  "@gastronomie": {
+    "urls": [
+      "https://www.gastrosuisse.ch/",
+      "https://www.kmu.admin.ch/"
+    ]
+  },
+
+  "@bar": {
+    "urls": [
+      "https://www.gastrosuisse.ch/de/wissen/gastronomie/bar/",
+      "https://www.barfachschule.ch/"
+    ]
+  },
+
+  "@event_produktion": {
+    "urls": [
+      "https://www.vplt.ch/de/branchenwissen",
+      "https://www.eventbranche.ch/"
+    ]
+  },
+
+  "@event_marketing": {
+    "urls": [
+      "https://www.marketing.ch/",
+      "https://www.eventmarketing.ch/"
+    ]
+  },
+
+  "@betriebswirtschaft": {
+    "urls": [
+      "https://www.kmu.admin.ch/",
+      "https://www.weiterbildung.swiss/"
+    ]
+  },
+
+  "@betriebskonzept": {
+    "urls": [
+      "https://www.kmu.admin.ch/kmu/de/home/praktisches-wissen.html",
+      "https://www.startbiz.ch/"
+    ]
+  },
+
+  "@restaurant_konzept": {
+    "urls": [
+      "https://www.gastrosuisse.ch/de/wissen/unternehmertum/",
+      "https://www.kmu.admin.ch/"
+    ]
+  },
+
+  "@bar_konzept": {
+    "urls": [
+      "https://www.barfachschule.ch/",
+      "https://www.gastrosuisse.ch/"
+    ]
+  }
+}
