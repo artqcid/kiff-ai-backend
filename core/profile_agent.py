@@ -57,7 +57,10 @@ class ProfileAgent:
 
         with open(self.profiles_config_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-            return data.get("profiles", {})
+            # Support both {"profiles": {...}} and direct {...} format
+            if "profiles" in data:
+                return data["profiles"]
+            return data
 
     def set_profile(self, profile_name: str) -> bool:
         """Wechselt aktives Profil"""

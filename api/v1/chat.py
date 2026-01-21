@@ -77,13 +77,23 @@ async def send_message(request: ChatRequest):
         # Generate session ID if not provided
         session_id = request.session_id or str(uuid.uuid4())
         
+        # Extract message from either format
+        if request.messages and len(request.messages) > 0:
+            # Use last message from messages array
+            user_message_text = request.messages[-1].content
+        elif request.message:
+            # Use deprecated message field
+            user_message_text = request.message
+        else:
+            raise HTTPException(status_code=400, detail="No message provided")
+        
         # Load chat history
         chat_history = load_chat_history()
         
         # Add user message to history
         user_message = {
             "role": "user",
-            "content": request.message,
+            "content": user_message_text,
             "timestamp": datetime.utcnow().isoformat()
         }
         chat_history.append(user_message)
@@ -91,7 +101,7 @@ async def send_message(request: ChatRequest):
         # Fetch web contexts if @tags are present
         contexts = {}
         try:
-            contexts = await agent.get_contexts_for_prompt(request.message)
+            contexts = await agent.get_contexts_for_prompt(user_message_text)
             if contexts:
                 print(f"Fetched {len(contexts)} web contexts for message")
         except Exception as e:
@@ -99,22 +109,27 @@ async def send_message(request: ChatRequest):
             # Continue without contexts
         
         # Get AI response
-        # TODO: Implement proper profile selection and agent invocation
         try:
             # If we have contexts, enrich the message
-            enriched_message = request.message
+            enriched_message = user_message_text
             if contexts:
                 context_text = "\n\n## Business Context\n"
                 for url, content in contexts.items():
                     context_text += f"\n### Quelle: {url}\n{content[:2000]}...\n"
-                enriched_message = context_text + "\n\n" + request.message
+                enriched_message = context_text + "\n\n" + user_message_text
             
-            response_text = agent.chat(enriched_message)
+            # Use agent.run() with profile from request
+            response_text = agent.run(
+                enriched_message, 
+                profile_name=request.profile,
+                temperature=request.temperature,
+                max_tokens=request.max_tokens
+            )
         except Exception as e:
+            print(f"Error in agent.run: {e}")
             # Fallback to simple completion if agent fails
             llm_client = get_llm_client()
-            result = llm_client._generate([request.message])
-            response_text = result.generations[0][0].text if result.generations else "Error generating response"
+            response_text = llm_client.complete(user_message_text)
         
         # Add assistant message to history
         assistant_message = {
@@ -128,7 +143,7 @@ async def send_message(request: ChatRequest):
         save_chat_history(chat_history)
         
         return ChatResponse(
-            message=response_text,
+            response=response_text,
             session_id=session_id,
             model=request.model or "default",
             profile=request.profile or "default",
@@ -195,3 +210,31 @@ async def clear_all_sessions():
         return {"message": "All chat history cleared"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error clearing sessions: {str(e)}")
+
+
+@router.get("/history")
+async def get_history():
+    """
+    Get chat history (simplified endpoint for frontend)
+    """
+    chat_history = load_chat_history()
+    return {"history": chat_history}
+
+
+@router.delete("/history")
+async def clear_history():
+    """
+    Clear chat history (simplified endpoint for frontend)
+    """
+    try:
+        save_chat_history([])
+        return {"message": "Chat history cleared"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error clearing history: {str(e)}")
+
+
+# Convenience alias for frontend
+@router.post("/chat", response_model=ChatResponse)
+async def send_message_alias(request: ChatRequest):
+    """Send a message (alias for /chat/messages)"""
+    return await send_message(request)

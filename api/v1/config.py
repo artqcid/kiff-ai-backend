@@ -116,3 +116,16 @@ async def get_server_config():
             return json.load(f)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to load server config: {str(e)}")
+
+
+# Convenience aliases for frontend
+@router.get("/models", response_model=List[ModelInfo])
+async def get_models_alias():
+    """Get list of available models (alias)"""
+    return await get_models()
+
+
+@router.get("/profiles", response_model=List[ProfileInfo])
+async def get_profiles_alias():
+    """Get list of available agent profiles (alias)"""
+    return await get_profiles()

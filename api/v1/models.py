@@ -22,7 +22,8 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     """Request for chat completion"""
-    message: str = Field(..., description="User message")
+    message: Optional[str] = Field(None, description="User message (deprecated, use messages)")
+    messages: Optional[List[ChatMessage]] = Field(None, description="Chat messages array")
     session_id: Optional[str] = Field(None, description="Chat session ID")
     profile: Optional[str] = Field("default", description="Agent profile to use")
     model: Optional[str] = Field(None, description="Model override")
@@ -32,7 +33,8 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     """Response from chat completion"""
-    message: str = Field(..., description="Assistant response")
+    response: str = Field(..., description="Assistant response")
+    message: Optional[str] = Field(None, description="Deprecated, use response")
     session_id: str = Field(..., description="Chat session ID")
     model: str = Field(..., description="Model used")
     profile: str = Field(..., description="Profile used")

@@ -1,0 +1,12 @@
+{
+  "models": {
+    "mistral-7b": {
+      "model_path": "D:/AI-Models/llama/mistral/mistral-7b-instruct-v0.2.Q4_K_M.gguf",
+      "gpu_layers": 25,
+      "context_size": 8192,
+      "description": "Mistral 7B Instruct v0.2 Q4_K_M",
+      "is_default": true
+    }
+  },
+  "adapters": {}
+}
