@@ -1,6 +1,6 @@
 {
   "default": {
-    "display_name": "Standard Agent",
+    "display_name": "Generelle Fragen und Analysen",
     "description": "Allgemeiner KI-Assistent für verschiedene Aufgaben",
     "system_prompt": "Du bist ein hilfreicher KI-Assistent. Antworte präzise und informativ auf Deutsch.",
     "parameters": {
