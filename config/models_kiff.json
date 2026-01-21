@@ -42,68 +42,36 @@
     },
     "groq": {
       "models": {
-        "gemma2-9b-it": {
-          "model_id": "gemma2-9b-it",
-          "display_name": "Gemma 2 9B",
-          "description": "Google Gemma 2 9B Instruct - Schnellstes Modell",
-          "short_name": "gemma2",
-          "context_size": 8192,
-          "is_default": true,
-          "capabilities": ["chat", "instruction-following", "fast-inference"],
-          "metadata": {
-            "context": "8K",
-            "speed": "1150 TPM",
-            "cost": "$0.20/$0.30 per 1k (kostenlos im Free Tier)",
-            "request_limit": "30/min (Free), 1K/min (Paid)",
-            "token_limit": "15K/min (Free), 250K/min (Paid)"
-          }
-        },
         "llama-3.1-8b-instant": {
           "model_id": "llama-3.1-8b-instant",
-          "display_name": "Llama 3.1 8B",
-          "description": "Meta Llama 3.1 8B - Große Context-Fenster",
+          "display_name": "Llama 3.1 8B Instant",
+          "description": "⚡ Remote-Ersatz für Mistral - Schnelle Antworten, Zusammenfassungen",
           "short_name": "llama8b",
           "context_size": 131072,
-          "is_default": false,
-          "capabilities": ["chat", "instruction-following", "large-context"],
+          "is_default": true,
+          "capabilities": ["chat", "instruction-following", "fast-inference", "summarization"],
           "metadata": {
             "context": "131K",
-            "speed": "560 TPM",
-            "cost": "$0.05/$0.08 per 1k (kostenlos im Free Tier)",
-            "request_limit": "30/min (Free), 1K/min (Paid)",
-            "token_limit": "15K/min (Free), 250K/min (Paid)"
+            "speed": "Sehr schnell, wenig Overthinking",
+            "cost": "Kostenlos (Free Tier)",
+            "request_limit": "30/min",
+            "token_limit": "14.4K/min, 500K/day (sehr entspannt)"
           }
         },
         "llama-3.3-70b-versatile": {
           "model_id": "llama-3.3-70b-versatile",
-          "display_name": "Llama 3.3 70B",
-          "description": "Meta Llama 3.3 70B - Beste Qualität für Reasoning",
+          "display_name": "Llama 3.3 70B Versatile",
+          "description": "🧠 Bestes Reasoning - Transformationslogik, Ist/Soll, Risiko-Analysen",
           "short_name": "llama70b",
           "context_size": 131072,
           "is_default": false,
-          "capabilities": ["chat", "reasoning", "code-generation", "analysis"],
+          "capabilities": ["chat", "reasoning", "strategic-thinking", "deep-analysis"],
           "metadata": {
             "context": "131K",
-            "speed": "280 TPM",
-            "cost": "$0.59/$0.79 per 1k (kostenlos im Free Tier)",
-            "request_limit": "30/min (Free), 1K/min (Paid)",
-            "token_limit": "15K/min (Free), 250K/min (Paid)"
-          }
-        },
-        "mixtral-8x7b-32768": {
-          "model_id": "mixtral-8x7b-32768",
-          "display_name": "Mixtral 8x7B",
-          "description": "Mixtral 8x7B - Exzellent für Multi-Task",
-          "short_name": "mixtral",
-          "context_size": 32768,
-          "is_default": false,
-          "capabilities": ["chat", "multi-task", "code-generation"],
-          "metadata": {
-            "context": "32K",
-            "speed": "580 TPM",
-            "cost": "$0.24/$0.24 per 1k (kostenlos im Free Tier)",
-            "request_limit": "30/min (Free), 1K/min (Paid)",
-            "token_limit": "15K/min (Free), 250K/min (Paid)"
+            "speed": "Strategisches Reasoning",
+            "cost": "Kostenlos (Free Tier)",
+            "request_limit": "30/min",
+            "token_limit": "12K/min, 100K/day (mit RAG ausreichend)"
           }
         }
       }
