@@ -385,6 +385,43 @@ async def clear_history():
         raise HTTPException(status_code=500, detail=f"Error clearing history: {str(e)}")
 
 
+@router.delete("/history/{provider}/{profile}")
+async def clear_history_for_context(provider: str, profile: str):
+    """
+    Delete chat history entries for a specific provider + profile combination.
+    Keeps other conversations intact.
+    """
+    try:
+        history = load_chat_history()
+        before = len(history)
+        filtered = [
+            msg for msg in history
+            if not (
+                msg.get("profile") == profile and
+                (msg.get("provider") == provider or not msg.get("provider"))
+            )
+        ]
+        removed = before - len(filtered)
+        save_chat_history(filtered)
+
+        # Reset agent conversation history (but keep MCP context)
+        try:
+            agent = get_agent()
+            if hasattr(agent, 'conversation_history'):
+                agent.conversation_history = []
+        except Exception as e:
+            print(f"Warning: Could not reset agent history after context clear: {e}")
+
+        return {
+            "message": "Chat history cleared for context",
+            "provider": provider,
+            "profile": profile,
+            "removed": removed
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error clearing context history: {str(e)}")
+
+
 # Convenience alias for frontend
 @router.post("/chat", response_model=ChatResponse)
 async def send_message_alias(request: ChatRequest):
