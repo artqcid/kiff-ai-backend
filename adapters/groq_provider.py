@@ -83,6 +83,17 @@ class GroqProvider(AbstractLLMProvider):
             response.raise_for_status()
             result = response.json()
             
+            # Extract rate limit headers
+            rate_limit_info = {}
+            if 'x-ratelimit-remaining-requests' in response.headers:
+                rate_limit_info['remaining_requests'] = response.headers.get('x-ratelimit-remaining-requests')
+            if 'x-ratelimit-remaining-tokens' in response.headers:
+                rate_limit_info['remaining_tokens'] = response.headers.get('x-ratelimit-remaining-tokens')
+            if 'x-ratelimit-limit-requests' in response.headers:
+                rate_limit_info['limit_requests'] = response.headers.get('x-ratelimit-limit-requests')
+            if 'x-ratelimit-limit-tokens' in response.headers:
+                rate_limit_info['limit_tokens'] = response.headers.get('x-ratelimit-limit-tokens')
+            
             # Extract response (OpenAI format)
             choice = result.get("choices", [{}])[0]
             message = choice.get("message", {})
@@ -107,7 +118,8 @@ class GroqProvider(AbstractLLMProvider):
                     "completion_tokens": usage.get("completion_tokens", 0),
                     "total_tokens": total_tokens,
                     "finish_reason": choice.get("finish_reason", "unknown"),
-                    "cost_breakdown": cost_info
+                    "cost_breakdown": cost_info,
+                    "rate_limits": rate_limit_info
                 }
             )
             
@@ -181,7 +193,7 @@ class GroqProvider(AbstractLLMProvider):
         
         # Use minimal payload to test auth
         payload = {
-            "model": "gemma2-9b-it",  # Default model
+            "model": "llama-3.1-8b-instant",  # Fast model for validation
             "messages": [{"role": "user", "content": "test"}],
             "max_tokens": 5
         }
@@ -193,6 +205,10 @@ class GroqProvider(AbstractLLMProvider):
                 headers=headers,
                 timeout=10
             )
+            
+            print(f"🔍 Groq Validation Request:")
+            print(f"   Model: {payload['model']}")
+            print(f"   Status: {response.status_code}")
             
             if response.status_code == 200:
                 return ProviderValidationResult(
@@ -213,9 +229,13 @@ class GroqProvider(AbstractLLMProvider):
                     details={"rate_limited": True}
                 )
             else:
+                error_text = response.text
+                print(f"❌ Groq API Validation Error:")
+                print(f"   Status: {response.status_code}")
+                print(f"   Response: {error_text}")
                 return ProviderValidationResult(
                     valid=False,
-                    message=f"Groq API Error: Status {response.status_code}"
+                    message=f"Groq API Error: Status {response.status_code} - {error_text[:200]}"
                 )
                 
         except Exception as e:

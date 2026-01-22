@@ -187,8 +187,8 @@ class ProfileAgent:
 
         # Profile-Parameter als Defaults verwenden
         params = profile.get("parameters", {}) or {}
-        temperature = kwargs.get("temperature", params.get("temperature"))
-        max_tokens = kwargs.get("max_tokens", params.get("max_tokens"))
+        temperature = kwargs.pop("temperature", params.get("temperature"))
+        max_tokens = kwargs.pop("max_tokens", params.get("max_tokens"))
 
         # Baue Messages mit ChatMessage-Objekten
         messages = [
@@ -203,8 +203,7 @@ class ProfileAgent:
                 model=model_name,
                 provider_name=active_provider,
                 temperature=temperature,
-                max_tokens=max_tokens,
-                **kwargs
+                max_tokens=max_tokens
             )
             return response.content
         except Exception as e:
@@ -227,8 +226,7 @@ class ProfileAgent:
                         model=fallback_model,
                         provider_name="lokal",
                         temperature=temperature,
-                        max_tokens=max_tokens,
-                        **kwargs
+                        max_tokens=max_tokens
                     )
                     return f"⚠️ Fallback zu lokalem Modell\n\n{response.content}"
                 except Exception as fallback_error:

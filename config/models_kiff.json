@@ -47,15 +47,15 @@
           "display_name": "Llama 3.1 8B Instant",
           "description": "⚡ Remote-Ersatz für Mistral - Schnelle Antworten, Zusammenfassungen",
           "short_name": "llama8b",
-          "context_size": 131072,
+          "context_size": 8192,
           "is_default": true,
           "capabilities": ["chat", "instruction-following", "fast-inference", "summarization"],
           "metadata": {
-            "context": "131K",
+            "context": "8K",
             "speed": "Sehr schnell, wenig Overthinking",
             "cost": "Kostenlos (Free Tier)",
             "request_limit": "30/min",
-            "token_limit": "14.4K/min, 500K/day (sehr entspannt)"
+            "token_limit": "14.4K/min, 500K/day"
           }
         },
         "llama-3.3-70b-versatile": {
@@ -71,7 +71,7 @@
             "speed": "Strategisches Reasoning",
             "cost": "Kostenlos (Free Tier)",
             "request_limit": "30/min",
-            "token_limit": "12K/min, 100K/day (mit RAG ausreichend)"
+            "token_limit": "12K/min, 100K/day"
           }
         }
       }
