@@ -54,7 +54,7 @@
             "context": "8K",
             "speed": "Sehr schnell, wenig Overthinking",
             "cost": "Kostenlos (Free Tier)",
-            "request_limit": "30/min",
+            "request_limit": "1000/min",
             "token_limit": "14.4K/min, 500K/day"
           }
         },
@@ -70,7 +70,7 @@
             "context": "131K",
             "speed": "Strategisches Reasoning",
             "cost": "Kostenlos (Free Tier)",
-            "request_limit": "30/min",
+            "request_limit": "1000/min",
             "token_limit": "12K/min, 100K/day"
           }
         }
