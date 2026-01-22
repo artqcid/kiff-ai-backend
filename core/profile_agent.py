@@ -40,6 +40,7 @@ class ProfileAgent:
         self.context_manager = ContextManager()
         self.last_model_used: Optional[str] = None
         self.last_provider_used: Optional[str] = None
+        self.last_response_metadata: Optional[Dict] = None
 
     def _load_profiles(self) -> Dict:
         """Lädt Profile aus profiles_kiff.json und lädt externe Prompt-Dateien"""
@@ -205,6 +206,9 @@ class ProfileAgent:
                 temperature=temperature,
                 max_tokens=max_tokens
             )
+            # Store response metadata for rate limits
+            if hasattr(response, 'metadata'):
+                self.last_response_metadata = response.metadata
             return response.content
         except Exception as e:
             # Fallback zu lokalem Provider wenn möglich

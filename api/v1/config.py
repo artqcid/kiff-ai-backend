@@ -213,6 +213,8 @@ class CurrentProviderResponse(BaseModel):
     profile: str
     model: str
     provider_display_name: str
+    profile_display_name: str
+    model_short_name: str
 
 
 @router.get("/providers", response_model=List[ProviderInfo])
@@ -277,50 +279,6 @@ async def set_provider(provider_name: str):
     return {"message": f"Provider '{provider_name}' aktiviert", "provider": provider_name}
 
 
-@router.get("/provider/current", response_model=CurrentProviderResponse)
-async def get_current_provider():
-    """
-    Get current provider, profile and model
-    
-    Returns:
-        Current provider status
-    """
-    manager = get_provider_manager()
-    
-    # Get current provider
-    current_provider_name = manager.get_current_provider_name()
-    current_provider = manager.get_provider(current_provider_name)
-    
-    # Get current profile from persisted file
-    backend_dir = Path(__file__).parent.parent.parent
-    profile_file = backend_dir / "documents" / "current_profile.json"
-    current_profile = "general_chat"
-    
-    try:
-        if profile_file.exists():
-            data = json.loads(profile_file.read_text(encoding="utf-8"))
-            current_profile = data.get("profile", "general_chat")
-    except Exception:
-        pass
-    
-    # Get default model for current profile and provider
-    from backend.core.profile_agent import ProfileAgent
-    agent = ProfileAgent(provider_manager=manager)
-    default_model = agent.get_default_model_for_profile(current_profile, current_provider_name)
-    
-    if not default_model:
-        # Fallback to first supported model
-        supported_models = agent.get_models_for_profile(current_profile, current_provider_name)
-        default_model = supported_models[0] if supported_models else "unknown"
-    
-    return CurrentProviderResponse(
-        provider=current_provider_name,
-        profile=current_profile,
-        model=default_model,
-        provider_display_name=current_provider.config.display_name
-    )
-
-
 @router.get("/profile/{profile_name}/models")
 async def get_profile_models(profile_name: str, provider: Optional[str] = None):
     """
@@ -374,6 +332,30 @@ async def get_profile_models(profile_name: str, provider: Optional[str] = None):
     }
 
 
+@router.post("/model/{model_id}/set")
+async def set_model(model_id: str):
+    """
+    Set current model (persist to file)
+    
+    Args:
+        model_id: ID of model to set as current
+        
+    Returns:
+        Success message
+    """
+    backend_dir = Path(__file__).resolve().parent.parent.parent
+    model_file = backend_dir / "documents" / "current_model.json"
+    
+    try:
+        model_file.write_text(
+            json.dumps({"model": model_id}, indent=2),
+            encoding="utf-8"
+        )
+        return {"message": f"Model '{model_id}' set as current", "model": model_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to set model: {str(e)}")
+
+
 @router.get("/provider/current")
 async def get_current_provider():
     """Get current active provider, profile, and model with display names"""
@@ -383,10 +365,9 @@ async def get_current_provider():
     manager = ProviderManager()
     
     # Get current provider
-    current_provider_name = manager.current_provider
+    current_provider_name = manager.get_current_provider_name()
     provider = manager.get_provider(current_provider_name)
-    provider_config = manager.providers_config.get("providers", {}).get(current_provider_name, {})
-    provider_display_name = provider_config.get("display_name", current_provider_name)
+    provider_display_name = provider.config.display_name if hasattr(provider, 'config') else current_provider_name
     
     # Get current profile
     backend_dir = Path(__file__).resolve().parent.parent.parent
@@ -409,9 +390,20 @@ async def get_current_provider():
         except:
             pass
     
-    # Get current model
-    agent = ProfileAgent(profile_name=current_profile_name, provider_manager=manager)
-    current_model = agent.get_default_model_for_profile(current_profile_name, current_provider_name)
+    # Get current model - check persisted model first
+    model_file = backend_dir / "documents" / "current_model.json"
+    current_model = None
+    if model_file.exists():
+        try:
+            model_data = json.loads(model_file.read_text(encoding="utf-8"))
+            current_model = model_data.get("model")
+        except Exception:
+            pass
+    
+    # Fallback to default model for profile if no persisted model
+    if not current_model:
+        agent = ProfileAgent(profile_name=current_profile_name, provider_manager=manager)
+        current_model = agent.get_default_model_for_profile(current_profile_name, current_provider_name)
     
     # Get model short name
     model_short_name = current_model

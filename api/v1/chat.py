@@ -231,13 +231,25 @@ async def send_message(request: ChatRequest):
             # Resolve target model (override > profile > default)
             # Resolve active profile preferring request > persisted > agent state
             active_profile = request.profile or read_persisted_profile() or agent.get_current_profile()
+            
+            # Read persisted model if not specified in request
+            model_to_use = request.model
+            if not model_to_use:
+                # Check for persisted model
+                model_file = BACKEND_DIR / "documents" / "current_model.json"
+                if model_file.exists():
+                    try:
+                        model_data = json.loads(model_file.read_text(encoding="utf-8"))
+                        model_to_use = model_data.get("model")
+                    except Exception:
+                        pass
 
             response_text = await agent.run(
                 enriched_message,
                 profile_name=active_profile,
                 temperature=request.temperature,
                 max_tokens=request.max_tokens,
-                model=request.model,
+                model=model_to_use,
             )
             # Model und Provider-Ermittlung nach agent.run() - wurde im run() gesetzt
             model_used = agent.last_model_used or "unknown"
@@ -266,6 +278,11 @@ async def send_message(request: ChatRequest):
         # Save updated history
         save_chat_history(chat_history)
         
+        # Get rate limits from provider if available
+        rate_limits_data = {}
+        if hasattr(agent, 'last_response_metadata') and agent.last_response_metadata:
+            rate_limits_data = agent.last_response_metadata.get('rate_limits', {})
+        
         return ChatResponse(
             response=response_text,
             session_id=session_id,
@@ -274,7 +291,8 @@ async def send_message(request: ChatRequest):
             timestamp=datetime.utcnow().isoformat(),
             metadata={
                 "message_count": len(chat_history),
-                "provider": provider_used
+                "provider": provider_used,
+                "rate_limits": rate_limits_data
             }
         )
         
